@@ -1,0 +1,62 @@
+services:
+  # PostgreSQL 16: база данных Moodle.
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-moodle}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-moodle}
+      POSTGRES_DB: ${POSTGRES_DB:-moodle}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-moodle} -d ${POSTGRES_DB:-moodle}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    # Порт наружу не публикуем - доступ только изнутри сети compose
+    # (web, adminer) и через `docker compose exec db psql`.
+
+  # Adminer: веб-интерфейс для работы с БД (http://localhost:8081).
+  adminer:
+    image: adminer:latest
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Одноразовый инициализатор: клонирует ядро Moodle 4.5 в volume
+  # moodle_code (если ещё не клонировано) и готовит права на moodledata.
+  moodle-init:
+    image: moodlehq/moodle-php-apache:8.2
+    user: root
+    entrypoint: ["/bin/bash", "/scripts/moodle-init.sh"]
+    volumes:
+      - moodle_code:/var/www/html
+      - moodledata:/var/www/moodledata
+      - ./scripts:/scripts:ro
+    restart: "no"
+
+  # Веб-сервер: Apache + PHP 8.2 + ядро Moodle из volume moodle_code.
+  # Корень репозитория монтируется как блок quick_access.
+  web:
+    image: moodlehq/moodle-php-apache:8.2
+    ports:
+      - "${MOODLE_PORT:-8080}:80"
+    volumes:
+      - moodle_code:/var/www/html
+      - .:/var/www/html/blocks/quick_access
+      - moodledata:/var/www/moodledata
+      - ./scripts:/scripts:ro   # fix-permissions.sh: docker compose exec -u root web bash /scripts/fix-permissions.sh
+    depends_on:
+      db:
+        condition: service_healthy
+      moodle-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  moodle_code:
+  moodledata:
+  pgdata:

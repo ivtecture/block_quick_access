@@ -1,0 +1,7 @@
+# Normalize line endings for all text files.
+* text=auto
+
+# Shell scripts and compose file must always use LF,
+# otherwise they break when checked out on Windows (CRLF).
+*.sh text eol=lf
+docker-compose.yml text eol=lf

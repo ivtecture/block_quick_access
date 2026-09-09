@@ -1,0 +1,9 @@
+.DS_Store
+*.log
+.idea/
+.vscode/
+node_modules/
+moodle/
+moodledata/
+*.bak
+moodle_block_plan.md
