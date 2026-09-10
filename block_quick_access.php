@@ -60,6 +60,7 @@ class block_quick_access extends block_base {
             get_string('mycourses', 'block_quick_access') => new moodle_url('/my/courses.php'),
             get_string('calendar', 'block_quick_access')  => new moodle_url('/calendar/view.php', ['view' => 'month']),
             get_string('sitehome', 'block_quick_access')  => new moodle_url('/'),
+            get_string('analytics', 'block_quick_access') => new moodle_url('/blocks/task_analytics/view.php'),
         ];
 
         // The administration link is only rendered for users who can configure the site.

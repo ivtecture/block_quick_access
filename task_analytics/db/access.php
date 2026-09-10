@@ -15,19 +15,32 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Russian strings for the "Quick access" block.
+ * Capabilities for the "Task analytics" block.
  *
- * @package    block_quick_access
+ * @package    block_task_analytics
  * @copyright  2026 Your Name
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
-// Note: language files are included via require(), no MOODLE_INTERNAL guard here (Moodle convention).
+defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Быстрый доступ';
-$string['dashboard'] = 'Дашборд';
-$string['mycourses'] = 'Мои курсы';
-$string['calendar'] = 'Календарь';
-$string['sitehome'] = 'Главная';
-$string['administration'] = 'Администрирование';
-$string['analytics'] = 'Аналитика задач';
+$capabilities = [
+    'block/task_analytics:addinstance' => [
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'moodle/site:manageblocks',
+    ],
+    'block/task_analytics:myaddinstance' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'user' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'moodle/my:manageblocks',
+    ],
+];

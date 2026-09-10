@@ -96,13 +96,37 @@ cd block_quick_access
 
 | Что | Где живёт | Как попадает в контейнер |
 |---|---|---|
-| Код плагина | корень репозитория (на хосте) | bind mount `.:/var/www/html/blocks/quick_access` в сервисе `web` |
+| Код плагина quick_access | корень репозитория (на хосте) | bind mount `.:/var/www/html/blocks/quick_access` в сервисе `web` |
+| Код плагина task_analytics | `./task_analytics` (на хосте) | bind mount `./task_analytics:/var/www/html/blocks/task_analytics` в сервисе `web` |
 | Ядро Moodle | named volume `moodle_code` (на хосте не виден) | клонируется контейнером `moodle-init` из `MOODLE_405_STABLE` |
 | Файлы данных Moodle | named volume `moodledata` | монтируется в `web` как `/var/www/moodledata` |
 | База данных | named volume `pgdata` | монтируется в `db` как `/var/lib/postgresql/data` |
 
 Инфра-файлы (`docker-compose.yml`, `.env` и т.п.) лежат в корне репозитория рядом
 с файлами плагина — Moodle их игнорирует, это нормально.
+
+## Блок «Аналитика задач» (block_task_analytics)
+
+Второй плагин в этом репо — **«Аналитика задач»**: компактный обзор всех
+`mod_assign` + `mod_quiz` по всем enrolled курсам текущего пользователя
+(топ-7 в блоке, полный список в `/blocks/task_analytics/view.php`).
+Студент видит свои сдачи, учитель (capability `mod/assign:grade` /
+`mod/quiz:grade` в курсе) — агрегаты на проверку. Статусы: «Не загружено» /
+«На проверке» / «Оценено, оценка: X» + ссылка на отзыв/проверку.
+
+Исходник блока лежит в `./task_analytics/` (корень этой папки = корень
+плагина: `block_task_analytics.php`, `version.php`, `db/`, `classes/`,
+`lang/`, `view.php`, `styles.css`) и примонтирован в контейнер как
+`blocks/task_analytics` — см. `volumes` сервиса `web` в `docker-compose.yml`.
+Вариант `blocks/task_analytics/` внутри корня НЕ использовался: корень репо
+сам монтируется как `blocks/quick_access`, и вложенный `blocks/` ломал бы
+пути и копировался бы в первый плагин (Moodle его игнорирует, но это мусор).
+
+Установка второго блока на dev-стенде: отдельных шагов не нужно — после
+`docker compose up -d` оба bind mount активны. Далее стандартно: purge caches,
+зайти на `/admin/index.php` (апгрейд подхватит `block_task_analytics`
+v0.1.0), добавить блок «Аналитика задач» на дашборд. Из панели «Быстрый
+доступ» на полную таблицу ведёт ссылка «Аналитика задач» / «Task analytics».
 
 ## Workflow разработки
 
@@ -152,13 +176,25 @@ block_quick_access/
 ├── scripts/
 │   ├── moodle-init.sh            # одноразовый инициализатор ядра Moodle
 │   └── fix-permissions.sh        # ремонт прав (root-owned файлы после CLI без -u www-data)
-├── version.php                   # метаданные плагина
-├── block_quick_access.php        # класс блока
-└── lang/
-    ├── en/
-    │   └── block_quick_access.php
-    └── ru/
-        └── block_quick_access.php
+├── version.php                   # метаданные плагина quick_access
+├── block_quick_access.php        # класс блока quick_access (+ ссылка на аналитику)
+├── lang/
+│   ├── en/
+│   │   └── block_quick_access.php
+│   └── ru/
+│       └── block_quick_access.php
+└── task_analytics/               # ИСХОДНИК второго плагина (монтируется как blocks/task_analytics)
+    ├── block_task_analytics.php  # класс блока
+    ├── version.php               # component block_task_analytics, v0.1.0
+    ├── view.php                  # полная таблица всех задач
+    ├── styles.css                # бейджи статусов
+    ├── db/access.php             # capabilities addinstance/myaddinstance
+    ├── classes/
+    │   ├── service.php           # get_overview/get_assign_data/get_quiz_data
+    │   └── privacy/provider.php  # null_provider
+    └── lang/
+        ├── en/block_task_analytics.php
+        └── ru/block_task_analytics.php
 ```
 
 ## Troubleshooting

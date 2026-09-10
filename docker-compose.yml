@@ -39,7 +39,8 @@ services:
     restart: "no"
 
   # Веб-сервер: Apache + PHP 8.2 + ядро Moodle из volume moodle_code.
-  # Корень репозитория монтируется как блок quick_access.
+  # Корень репозитория монтируется как блок quick_access,
+  # подпапка ./task_analytics — как отдельный блок task_analytics.
   web:
     image: moodlehq/moodle-php-apache:8.2
     ports:
@@ -47,6 +48,7 @@ services:
     volumes:
       - moodle_code:/var/www/html
       - .:/var/www/html/blocks/quick_access
+      - ./task_analytics:/var/www/html/blocks/task_analytics
       - moodledata:/var/www/moodledata
       - ./scripts:/scripts:ro   # fix-permissions.sh: docker compose exec -u root web bash /scripts/fix-permissions.sh
     depends_on:

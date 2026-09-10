@@ -1,0 +1,82 @@
+/* Styles for the "Task analytics" block (block_task_analytics). */
+
+.block_task_analytics .task-analytics-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.block_task_analytics .task-analytics-item {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.block_task_analytics .task-analytics-item:last-child {
+    border-bottom: none;
+}
+
+.block_task_analytics .task-analytics-course {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.block_task_analytics .task-analytics-name {
+    font-weight: 600;
+}
+
+.block_task_analytics .task-analytics-meta {
+    margin-top: 0.15rem;
+}
+
+.block_task_analytics .task-status {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.block_task_analytics .task-status-notsubmitted {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.block_task_analytics .task-status-inreview {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.block_task_analytics .task-status-graded {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.block_task_analytics .task-analytics-action {
+    margin-left: 0.4rem;
+}
+
+.task-analytics-table .task-status {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.task-analytics-table .task-status-notsubmitted {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.task-analytics-table .task-status-inreview {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.task-analytics-table .task-status-graded {
+    background: #d1e7dd;
+    color: #0f5132;
+}
