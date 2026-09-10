@@ -30,3 +30,4 @@ $string['mycourses'] = 'My courses';
 $string['calendar'] = 'Calendar';
 $string['sitehome'] = 'Site home';
 $string['administration'] = 'Administration';
+$string['analytics'] = 'Task analytics';

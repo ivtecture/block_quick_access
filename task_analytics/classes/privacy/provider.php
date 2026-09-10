@@ -15,19 +15,30 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Russian strings for the "Quick access" block.
+ * Privacy provider for the "Task analytics" block.
  *
- * @package    block_quick_access
+ * The block only reads assign/quiz data, it never stores anything itself.
+ *
+ * @package    block_task_analytics
  * @copyright  2026 Your Name
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
-// Note: language files are included via require(), no MOODLE_INTERNAL guard here (Moodle convention).
+namespace block_task_analytics\privacy;
 
-$string['pluginname'] = 'Быстрый доступ';
-$string['dashboard'] = 'Дашборд';
-$string['mycourses'] = 'Мои курсы';
-$string['calendar'] = 'Календарь';
-$string['sitehome'] = 'Главная';
-$string['administration'] = 'Администрирование';
-$string['analytics'] = 'Аналитика задач';
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Null privacy provider (no personal data stored).
+ */
+class provider implements \core_privacy\local\metadata\null_provider {
+
+    /**
+     * Return the language string identifier for the reason of no data storage.
+     *
+     * @return string
+     */
+    public static function get_reason(): string {
+        return 'privacy:metadata';
+    }
+}

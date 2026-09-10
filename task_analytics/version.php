@@ -15,19 +15,17 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Russian strings for the "Quick access" block.
+ * Version metadata for the "Task analytics" block.
  *
- * @package    block_quick_access
+ * @package    block_task_analytics
  * @copyright  2026 Your Name
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
-// Note: language files are included via require(), no MOODLE_INTERNAL guard here (Moodle convention).
+defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Быстрый доступ';
-$string['dashboard'] = 'Дашборд';
-$string['mycourses'] = 'Мои курсы';
-$string['calendar'] = 'Календарь';
-$string['sitehome'] = 'Главная';
-$string['administration'] = 'Администрирование';
-$string['analytics'] = 'Аналитика задач';
+$plugin->component = 'block_task_analytics';
+$plugin->version   = 2026091000;  // YYYYMMDDXX.
+$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
+$plugin->maturity  = MATURITY_BETA;
+$plugin->release   = 'v0.1.0';
