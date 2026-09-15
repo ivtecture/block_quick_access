@@ -33,9 +33,6 @@ defined('MOODLE_INTERNAL') || die();
  */
 class block_quicklinks extends block_base {
 
-    /** Maximum number of link fields shown in the edit form. */
-    const MAX_LINKS = 20;
-
     /**
      * Initialise the block title.
      */
@@ -93,8 +90,6 @@ class block_quicklinks extends block_base {
      * @return stdClass
      */
     public function get_content() {
-        global $CFG;
-
         if ($this->content !== null) {
             return $this->content;
         }

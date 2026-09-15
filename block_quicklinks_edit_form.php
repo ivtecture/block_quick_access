@@ -43,8 +43,9 @@ class block_quicklinks_edit_form extends block_edit_form {
 
         // Pre-fill the form with configured links (+1 empty row), at least 3 rows.
         $repeats = 3;
-        if (!empty($this->block->config) && !empty($this->block->config->links)) {
-            $repeats = max(count($this->block->config->links) + 1, 3);
+        if (!empty($this->block->config) && !empty($this->block->config->linktitle)
+                && is_array($this->block->config->linktitle)) {
+            $repeats = max(count($this->block->config->linktitle) + 1, 3);
         }
 
         $repeatel = [
