@@ -18,7 +18,7 @@
  * Russian strings for the "Quick access" block.
  *
  * @package    block_quick_access
- * @copyright  2026 Your Name
+ * @copyright  2026 Human Mind
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
@@ -30,3 +30,17 @@ $string['mycourses'] = 'Мои курсы';
 $string['calendar'] = 'Календарь';
 $string['sitehome'] = 'Главная';
 $string['administration'] = 'Администрирование';
+$string['quick_access:view'] = 'Видеть таблицу лидеров курса';
+$string['leaderboard'] = 'Лучшие в курсе';
+$string['rank'] = 'Место';
+$string['user'] = 'Пользователь';
+$string['points'] = 'Баллы';
+$string['noentries'] = 'Оценок пока нет.';
+$string['bygrade'] = 'По оценкам';
+$string['bycompletion'] = 'По завершению';
+$string['completionrate'] = 'Завершение';
+$string['nocompletiondata'] = 'Данные о завершении отсутствуют.';
+$string['back'] = 'Назад';
+$string['limit'] = 'Количество отображаемых лучших пользователей';
+$string['limit_desc'] = 'Значение по умолчанию для таблицы лидеров курса.';
+$string['privacy:metadata'] = 'Блок «Быстрый доступ» только показывает данные, уже хранящиеся в журнале оценок Moodle, и сам не хранит никаких персональных данных.';
