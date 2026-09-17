@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace block_quick_access\privacy;
+
+use core_privacy\local\metadata\null_provider;
+
 /**
- * Version metadata for the "Quick access" block.
+ * The quick access block only displays data already present in Moodle and
+ * does not store any personal data itself.
  *
  * @package    block_quick_access
  * @copyright  2026 Human Mind
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
+class provider implements null_provider {
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'block_quick_access';
-$plugin->version   = 2026091710;  // YYYYMMDDXX.
-$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = 'v0.3.0';
+    /**
+     * Get the language string identifier for the privacy explanation.
+     *
+     * @return string
+     */
+    public static function get_reason(): string {
+        return 'privacy:metadata';
+    }
+}

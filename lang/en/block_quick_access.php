@@ -18,7 +18,7 @@
  * English strings for the "Quick access" block.
  *
  * @package    block_quick_access
- * @copyright  2026 Your Name
+ * @copyright  2026 Human Mind
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
@@ -30,3 +30,17 @@ $string['mycourses'] = 'My courses';
 $string['calendar'] = 'Calendar';
 $string['sitehome'] = 'Site home';
 $string['administration'] = 'Administration';
+$string['quick_access:view'] = 'View the course leaderboard';
+$string['leaderboard'] = 'Leaderboard';
+$string['rank'] = 'Rank';
+$string['user'] = 'User';
+$string['points'] = 'Points';
+$string['noentries'] = 'No scores available yet.';
+$string['bygrade'] = 'By grade';
+$string['bycompletion'] = 'By completion';
+$string['completionrate'] = 'Completion';
+$string['nocompletiondata'] = 'No completion data available.';
+$string['back'] = 'Back';
+$string['limit'] = 'Number of top users to display';
+$string['limit_desc'] = 'Default value for the course leaderboard.';
+$string['privacy:metadata'] = 'The quick access block only displays data already present in the Moodle gradebook and does not store any personal data itself.';

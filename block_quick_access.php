@@ -21,12 +21,18 @@
  * Site home) plus an administration link for users who are allowed to
  * configure the site.
  *
+ * Additionally, on course pages it offers a "Leaderboard" link that opens
+ * a panel with two leaderboards (by course-total grade and by course
+ * completion) and a "Back" button returning to the block menu.
+ *
  * @package    block_quick_access
- * @copyright  2026 Your Name
+ * @copyright  2026 Human Mind
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/leaderboard.php');
 
 /**
  * Class block_quick_access.
@@ -72,7 +78,37 @@ class block_quick_access extends block_base {
             $items[] = html_writer::tag('li', html_writer::link($url, $label));
         }
 
-        $this->content->text = html_writer::tag('ul', implode('', $items), ['class' => 'list quick-access-links']);
+        // Course leaderboard panel: only meaningful on a real course page.
+        $course = $this->page->course;
+        $panel = '';
+        if ($course && isset($course->id) && (int)$course->id !== SITEID) {
+            $panel = block_quick_access_render_leaderboard_panel((int)$course->id);
+        }
+
+        $menuclass = 'list quick-access-links';
+        if ($panel !== '') {
+            $menuclass .= ' bqa-menu-ul';
+            $items[] = html_writer::tag('li', html_writer::tag(
+                'a',
+                get_string('leaderboard', 'block_quick_access'),
+                [
+                    'href' => '#',
+                    'class' => 'btn btn-sm btn-outline-secondary w-100 bqa-show-leaderboards',
+                ]
+            ));
+        }
+        $menu = html_writer::tag('ul', implode('', $items), ['class' => $menuclass]);
+
+        if ($panel !== '') {
+            $this->content->text = html_writer::div(
+                html_writer::div($menu, 'bqa-menu')
+                . html_writer::div($panel, 'bqa-leaderboards d-none'),
+                'bqa-block'
+            );
+            $this->page->requires->js_call_amd('block_quick_access/main', 'init');
+        } else {
+            $this->content->text = html_writer::div($menu, 'bqa-menu bqa-block');
+        }
 
         return $this->content;
     }
@@ -87,12 +123,12 @@ class block_quick_access extends block_base {
     }
 
     /**
-     * The block has no global (admin) configuration.
+     * The block has global (admin) configuration for the leaderboard.
      *
      * @return bool
      */
     public function has_config() {
-        return false;
+        return true;
     }
 
     /**

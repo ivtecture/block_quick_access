@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for the "Quick access" block.
+ * Global settings for the "Course leaderboard" block.
  *
  * @package    block_quick_access
  * @copyright  2026 Human Mind
@@ -24,8 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'block_quick_access';
-$plugin->version   = 2026091710;  // YYYYMMDDXX.
-$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = 'v0.3.0';
+if ($ADMIN->fulltree) {
+    $name = 'block_quick_access/limit';
+    $title = get_string('limit', 'block_quick_access');
+    $description = get_string('limit_desc', 'block_quick_access');
+    $setting = new admin_setting_configtext($name, $title, $description, 5, PARAM_INT);
+    $settings->add($setting);
+}
