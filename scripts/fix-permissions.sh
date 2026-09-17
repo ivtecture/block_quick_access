@@ -12,6 +12,7 @@ set -euo pipefail
 MOODLE_CODE_DIR="/var/www/html"
 MOODLE_DATA_DIR="/var/www/moodledata"
 PLUGIN_BIND_DIR="${MOODLE_CODE_DIR}/blocks/quick_access"
+PLUGIN_BIND_DIR_2="${MOODLE_CODE_DIR}/blocks/course_progress"
 
 echo "==> [fix-permissions] chown -R www-data:www-data ${MOODLE_DATA_DIR}"
 chown -R www-data:www-data "${MOODLE_DATA_DIR}"
@@ -20,7 +21,7 @@ chown -R www-data:www-data "${MOODLE_DATA_DIR}"
 # there is managed by Docker Desktop, so chown on it is pointless and slow -
 # skip that subtree and fix only the rest of the code dir.
 echo "==> [fix-permissions] chown www-data:www-data ${MOODLE_CODE_DIR} (skipping ${PLUGIN_BIND_DIR})"
-find "${MOODLE_CODE_DIR}" -path "${PLUGIN_BIND_DIR}" -prune -o -not -user www-data -exec chown www-data:www-data {} +
+find "${MOODLE_CODE_DIR}" -path "${PLUGIN_BIND_DIR}" -prune -o -path "${PLUGIN_BIND_DIR_2}" -prune -o -not -user www-data -exec chown www-data:www-data {} +
 
 # config.php must be readable by the Apache (www-data) workers.
 if [ -f "${MOODLE_CODE_DIR}/config.php" ]; then

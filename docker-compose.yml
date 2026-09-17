@@ -47,6 +47,7 @@ services:
     volumes:
       - moodle_code:/var/www/html
       - .:/var/www/html/blocks/quick_access
+      - ./course_progress:/var/www/html/blocks/course_progress
       - moodledata:/var/www/moodledata
       - ./scripts:/scripts:ro   # fix-permissions.sh: docker compose exec -u root web bash /scripts/fix-permissions.sh
     depends_on:
