@@ -15,17 +15,20 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for the "Quick links" block.
+ * English strings for the "Quick links" block.
  *
  * @package    block_quicklinks
  * @copyright  2026 Your Name
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+// Note: language files are included via require(), no MOODLE_INTERNAL guard here (Moodle convention).
 
-$plugin->component = 'block_quicklinks';
-$plugin->version   = 2026091500;  // YYYYMMDDXX.
-$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = 'v0.1.0';
+$string['pluginname'] = 'Quick links';
+$string['quicklinks:addinstance'] = 'Add a new Quick links block';
+$string['quicklinks:myaddinstance'] = 'Add a new Quick links block to the dashboard';
+$string['linksheader'] = 'Links';
+$string['linktitle'] = 'Link title';
+$string['linkurl'] = 'Link URL';
+$string['addlink'] = 'Add one more link';
+$string['nolinksyet'] = 'No links yet. Click the gear icon on the block to add links.';

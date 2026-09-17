@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for the "Quick links" block.
+ * Capabilities for the Quick links block.
  *
  * @package    block_quicklinks
  * @copyright  2026 Your Name
@@ -24,8 +24,25 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'block_quicklinks';
-$plugin->version   = 2026091500;  // YYYYMMDDXX.
-$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = 'v0.1.0';
+$capabilities = [
+
+    // Who can add the block to a course page and configure its links.
+    'block/quicklinks:addinstance' => [
+        'riskbitmask' => RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'moodle/site:manageblocks',
+    ],
+
+    'block/quicklinks:myaddinstance' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'user' => CAP_ALLOW,
+        ],
+    ],
+];
