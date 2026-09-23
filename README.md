@@ -85,6 +85,42 @@ docker compose exec -u www-data web php admin/cli/purge_caches.php
 
 ---
 
+## Добавление быстрых ссылок в блок
+
+### Вариант 1: Через веб-интерфейс (вручную)
+
+1. **Зайти в курс** (http://localhost:8080) под администратором (`admin`/`admin123`)
+2. **Найти блок «Быстрые ссылки»** на странице курса (если его нет, см. пункт 6 выше)
+3. **Нажать на значок шестерёнки ⚙** на блоке
+4. **Выбрать «Настроить блок "Быстрые ссылки"»**
+5. В открывшейся форме:
+   - **Link title** — введите название ссылки (например, «Moodle Docs»)
+   - **Link URL** — введите полный URL (например, `https://docs.moodle.org`)
+   - Нажимайте **«Add one more link»** для добавления дополнительных ссылок
+6. **Сохранить изменения** кнопкой **«Save changes»**
+
+**Результат:** Студенты и преподаватели будут видеть список ссылок в режиме только для чтения.
+
+### Вариант 2: Автоматически (через CLI скрипт)
+
+Для быстрого тестирования с готовыми sample links:
+
+```bash
+docker compose exec -u www-data web php blocks/quicklinks/create_sample_block.php
+```
+
+Скрипт:
+- Автоматически найдёт первый доступный курс
+- Создаст на нём блок Quick links (или найдёт существующий)
+- Добавит 3 sample ссылки:
+  - Moodle Docs → https://docs.moodle.org
+  - Course Resources → ссылка на курс
+  - Moodle Community → https://moodle.net
+
+**Результат:** откройте курс, и вы увидите готовый блок с ссылками.
+
+---
+
 ## Развёртывание на другой машине
 
 ```bash
@@ -162,6 +198,7 @@ block_quicklinks/  (корень репозитория, ветка quicklinks)
 ├── version.php                   # метаданные плагина
 ├── block_quicklinks.php          # класс блока
 ├── block_quicklinks_edit_form.php # форма настройки (список ссылок)
+├── create_sample_block.php       # CLI скрипт для автоматического создания блока с sample links
 ├── db/
 │   └── access.php                # права (addinstance для editingteacher/manager)
 └── lang/

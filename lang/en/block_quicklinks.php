@@ -31,4 +31,6 @@ $string['linksheader'] = 'Links';
 $string['linktitle'] = 'Link title';
 $string['linkurl'] = 'Link URL';
 $string['addlink'] = 'Add one more link';
-$string['nolinksyet'] = 'No links yet. Click the gear icon on the block to add links.';
+$string['addlinks'] = 'Add links';
+$string['editlinks'] = 'Edit links';
+$string['nolinksyet'] = 'No links yet. Use the shortcut below (or the block\'s gear icon) to add links.';

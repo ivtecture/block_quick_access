@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'block_quicklinks';
-$plugin->version   = 2026091500;  // YYYYMMDDXX.
+$plugin->version   = 2026092100;  // YYYYMMDDXX.
 $plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
 $plugin->maturity  = MATURITY_ALPHA;
 $plugin->release   = 'v0.1.0';

@@ -100,10 +100,20 @@ class block_quicklinks extends block_base {
 
         $links = $this->get_links();
 
+        // Load the one-click shortcut helper for users who can edit this
+        // block (teachers): it completes the jump to the configuration
+        // form after the editing mode has been switched on.
+        if (!empty($this->instance) && !$this->page->user_is_editing() && $this->user_can_edit()) {
+            $editurl = new moodle_url($this->page->url, ['bui_editid' => $this->instance->id]);
+            $this->page->requires->js_call_amd('block_quicklinks/shortcut', 'init', [$editurl->out(false)]);
+        }
+
         if (empty($links)) {
-            // Show a hint for users who can edit the block instance.
+            // Show a hint + a shortcut straight to the config form
+            // for users who can edit the block instance (teachers).
             if ($this->user_can_edit()) {
                 $this->content->text = get_string('nolinksyet', 'block_quicklinks');
+                $this->content->footer = $this->get_manage_links_link('addlinks');
             }
             return $this->content;
         }
@@ -116,7 +126,74 @@ class block_quicklinks extends block_base {
 
         $this->content->text = html_writer::tag('ul', implode('', $items), ['class' => 'list quicklinks-links']);
 
+        // Quick shortcut to the block's configuration form, so a teacher
+        // can add/edit links without enabling editing mode first.
+        if ($this->user_can_edit()) {
+            $this->content->footer = $this->get_manage_links_link('editlinks');
+        }
+
         return $this->content;
+    }
+
+    /**
+     * Build a shortcut link that jumps straight to this block instance's
+     * configuration form (the very same form the block's gear icon opens).
+     *
+     * The link is only rendered for users who can edit this block
+     * instance (e.g. teachers), students never see it.
+     *
+     * How it works:
+     * - The href points to the current page with bui_editid=<instance id>.
+     *   Moodle's block_manager::process_url_edit() then renders the block's
+     *   configuration form instead of the page content.
+     * - URL block actions are only processed while the editing mode is on,
+     *   so when editing is off the link also carries edit=1 + sesskey to
+     *   switch the editing mode on first (supported by course/view.php,
+     *   course/section.php, my/index.php, ...).
+     * - When the editing mode is already on, the core_block/edit JavaScript
+     *   module is loaded by core, and the data-* attributes below make the
+     *   link open the configuration form in a modal dialog, exactly like
+     *   the block's gear menu does (and the href stays as a no-JS fallback).
+     *
+     * @param string $stringkey Lang string key used as the link label
+     *                           ('addlinks' or 'editlinks').
+     * @return string HTML for the link, or an empty string if unavailable.
+     */
+    protected function get_manage_links_link(string $stringkey): string {
+        global $OUTPUT;
+
+        if (empty($this->instance) || !$this->user_can_edit()) {
+            return '';
+        }
+
+        $editing = $this->page->user_is_editing();
+
+        $params = ['bui_editid' => $this->instance->id];
+        if (!$editing) {
+            // Editing mode is required for the bui_editid URL action to be
+            // processed, so turn it on as part of the jump.
+            $params['edit'] = 1;
+            $params['sesskey'] = sesskey();
+        }
+        $url = new moodle_url($this->page->url, $params);
+
+        $label = get_string($stringkey, 'block_quicklinks');
+        $icon = $OUTPUT->pix_icon('i/settings', $label, 'core', ['class' => 'iconsmall']);
+
+        $attributes = [
+            'class' => 'quicklinks-manage-link',
+            'title' => $label,
+        ];
+        if ($editing) {
+            // Let the core_block/edit JS pick this link up and show the
+            // configuration form in a modal dialog instead of navigating.
+            $attributes['data-action'] = 'editblock';
+            $attributes['data-blockid'] = $this->instance->id;
+            $attributes['data-blockform'] = block_manager::get_block_edit_form_class($this->name());
+            $attributes['data-header'] = $label;
+        }
+
+        return html_writer::link($url, $icon . s($label), $attributes);
     }
 
     /**
@@ -153,7 +230,7 @@ class block_quicklinks extends block_base {
      *
      * @return bool
      */
-    protected function user_can_edit(): bool {
+    public function user_can_edit(): bool {
         if (empty($this->instance)) {
             return false;
         }
