@@ -1,0 +1,18 @@
+/* Quick shortcut link to the block configuration form (teachers only). */
+.block_quicklinks .quicklinks-manage-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 0.9em;
+    text-decoration: none;
+}
+
+.block_quicklinks .quicklinks-manage-link:hover,
+.block_quicklinks .quicklinks-manage-link:focus {
+    text-decoration: underline;
+}
+
+.block_quicklinks .quicklinks-manage-link .icon {
+    margin-right: 0; /* Rely on the flex gap instead of the default icon margin. */
+}
