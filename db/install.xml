@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/quick_access/db/install.xml" VERSION="20260929" COMMENT="XMLDB file for Moodle block_quick_access"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="block_quick_access_cloud" COMMENT="Words of the thought cloud, one row per word.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Unique id of the word."/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course the word belongs to."/>
+        <FIELD NAME="word" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Text shown in the cloud."/>
+        <FIELD NAME="posx" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="50" SEQUENCE="false" COMMENT="Horizontal position of the saved spot, percent of the page width."/>
+        <FIELD NAME="posy" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="50" SEQUENCE="false" COMMENT="Vertical position of the saved spot, percent of the page height."/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Position of the word in the list and in the saved layout."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User who added the word."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the word was added."/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the word was changed for the last time."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="courseidx" UNIQUE="false" FIELDS="courseid, sortorder"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

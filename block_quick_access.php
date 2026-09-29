@@ -21,6 +21,9 @@
  * Site home) plus an administration link for users who are allowed to
  * configure the site.
  *
+ * On course pages the block also carries the "Thought cloud": a teacher adds
+ * words to it and the words are spread over the background of the page.
+ *
  * @package    block_quick_access
  * @copyright  2026 Your Name
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
@@ -41,7 +44,9 @@ class block_quick_access extends block_base {
     }
 
     /**
-     * Return the block content (cached in $this->content).
+     * Return the block content.
+     *
+     * The result is built once per request and kept in $this->content.
      *
      * @return stdClass
      */
@@ -74,7 +79,85 @@ class block_quick_access extends block_base {
 
         $this->content->text = html_writer::tag('ul', implode('', $items), ['class' => 'list quick-access-links']);
 
+        // The thought cloud only makes sense inside a course.
+        $coursecontext = $this->get_course_context();
+        if ($coursecontext) {
+            $this->content->text .= $this->get_cloud_content($coursecontext);
+        }
+
         return $this->content;
+    }
+
+    /**
+     * Return the course the block is displayed in, if any.
+     *
+     * @return context_course|false
+     */
+    protected function get_course_context() {
+        if ($this->context->contextlevel == CONTEXT_COURSE) {
+            return $this->context;
+        }
+
+        // Blocks of activities and other pages inside a course are nested in its context.
+        return $this->context->get_course_context(false);
+    }
+
+    /**
+     * Render the "Thought cloud" part of the block.
+     *
+     * @param context_course $coursecontext
+     * @return string
+     */
+    protected function get_cloud_content(context_course $coursecontext): string {
+        global $OUTPUT;
+
+        $courseid = (int) $coursecontext->instanceid;
+        $canmanage = has_capability('block_quick_access/managewords', $coursecontext);
+        $words = $canmanage ? \block_quick_access\wordcloud::get_words($courseid) : [];
+
+        $context = [
+            'canmanage' => $canmanage,
+            'title' => get_string('cloudtitle', 'block_quick_access'),
+            'add' => get_string('addword', 'block_quick_access'),
+            'addicon' => \block_quick_access\icons::get('add'),
+            'empty' => get_string('cloudempty', 'block_quick_access'),
+            'hascwords' => !empty($words),
+            'save' => get_string('save'),
+            'cancel' => get_string('cancel'),
+            'inputlabel' => get_string('wordinput', 'block_quick_access'),
+            'placeholder' => get_string('wordplaceholder', 'block_quick_access'),
+            'maxwords' => \block_quick_access\wordcloud::MAXWORDS,
+            'maxlength' => \block_quick_access\wordcloud::MAXLENGTH,
+            'inputid' => 'block-quick-access-cloud-' . $this->instance->id,
+            'courseid' => $courseid,
+            'serviceurl' => (new moodle_url('/lib/ajax/service.php'))->out(false),
+            'words' => [],
+        ];
+
+        foreach ($words as $word) {
+            $context['words'][] = $word + [
+                'editlabel' => get_string('editword', 'block_quick_access', $word['word']),
+                'deletelabel' => get_string('deleteword', 'block_quick_access', $word['word']),
+                'editicon' => \block_quick_access\icons::get('edit'),
+                'deleteicon' => \block_quick_access\icons::get('trash'),
+            ];
+        }
+
+        return $OUTPUT->render_from_template('block_quick_access/cloud', $context);
+    }
+
+    /**
+     * Load the AMD module that powers the thought cloud.
+     *
+     * This hook is the canonical place to require JavaScript: it is invoked by
+     * block_base::formatted_contents() on every request the block is rendered,
+     * so the module is registered even when the surrounding markup comes from
+     * a cache. The module itself is a no-op when the cloud region is absent.
+     */
+    public function get_required_javascript() {
+        if ($this->get_course_context()) {
+            $this->page->requires->js_call_amd('block_quick_access/cloud');
+        }
     }
 
     /**

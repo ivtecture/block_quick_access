@@ -30,3 +30,17 @@ $string['mycourses'] = 'My courses';
 $string['calendar'] = 'Calendar';
 $string['sitehome'] = 'Site home';
 $string['administration'] = 'Administration';
+
+$string['cloudtitle'] = 'Thought cloud';
+$string['cloudempty'] = 'There are no words yet. Add the first one.';
+$string['addword'] = 'Add word';
+$string['editword'] = 'Edit the word "{$a}"';
+$string['deleteword'] = 'Delete the word "{$a}"';
+$string['wordinput'] = 'Word';
+$string['wordplaceholder'] = 'Enter a word';
+
+$string['confirmdelete'] = 'Delete the word "{$a}"?';
+$string['wordrequired'] = 'Please enter a word.';
+$string['invalidword'] = 'The word is too long: no more than {$a} characters are allowed.';
+$string['toomanywords'] = 'A course can hold no more than {$a} words.';
+$string['nopermissions'] = 'You do not have permission to do this.';

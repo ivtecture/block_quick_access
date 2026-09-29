@@ -30,3 +30,17 @@ $string['mycourses'] = 'Мои курсы';
 $string['calendar'] = 'Календарь';
 $string['sitehome'] = 'Главная';
 $string['administration'] = 'Администрирование';
+
+$string['cloudtitle'] = 'Облако мыслей';
+$string['cloudempty'] = 'Пока нет ни одного слова. Добавьте первое.';
+$string['addword'] = 'Добавить слово';
+$string['editword'] = 'Изменить слово «{$a}»';
+$string['deleteword'] = 'Удалить слово «{$a}»';
+$string['wordinput'] = 'Слово';
+$string['wordplaceholder'] = 'Введите слово';
+
+$string['confirmdelete'] = 'Удалить слово «{$a}»?';
+$string['wordrequired'] = 'Пожалуйста, введите слово.';
+$string['invalidword'] = 'Слишком длинное слово: допускается не больше {$a} символов.';
+$string['toomanywords'] = 'В курсе может быть не больше {$a} слов.';
+$string['nopermissions'] = 'У вас нет прав на это действие.';
