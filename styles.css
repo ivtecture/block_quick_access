@@ -1,0 +1,97 @@
+/* This file is part of Moodle - https://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Styles of the "Quick access" block and of its thought cloud.
+ *
+ * @package    block_quick_access
+ * @copyright  2026 Your Name
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
+ */
+
+/* The cloud. ------------------------------------------------------- */
+
+/* The overlay is measured by JavaScript, so the page has to be a positioning
+   context for it. */
+#page.block-quick-access-cloud-host {
+    position: relative;
+}
+
+.block-quick-access-cloud-overlay {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    z-index: 0;
+    overflow: hidden;
+    /* Nothing in the cloud is a control, so it must never eat a click. */
+    pointer-events: none;
+}
+
+/* Used on the few pages that have no #page to attach to. */
+.block-quick-access-cloud-overlay--window {
+    position: fixed;
+}
+
+.block-quick-access-cloud__word {
+    position: absolute;
+    transform-origin: center center;
+    white-space: nowrap;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--bs-primary, #0d6efd);
+    text-shadow: 0 1px 0 var(--bs-body-bg, #fff);
+    pointer-events: none;
+    user-select: none;
+}
+
+@media print {
+    .block-quick-access-cloud-overlay {
+        display: none;
+    }
+}
+
+/* The block. ------------------------------------------------------- */
+
+.block-quick-access-cloud__rule {
+    margin: 0.5rem 0 0.35rem;
+    opacity: 0.25;
+}
+
+.block-quick-access-cloud__title {
+    font-weight: 600;
+}
+
+.block-quick-access-cloud__list {
+    margin-bottom: 0;
+}
+
+.block-quick-access-cloud__item {
+    gap: 0.5rem;
+    padding: 0.1rem 0;
+}
+
+.block-quick-access-cloud__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.block-quick-access-cloud__icon {
+    display: block;
+    fill: currentColor;
+}

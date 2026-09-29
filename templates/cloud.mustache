@@ -1,0 +1,91 @@
+{{!
+    The "Thought cloud" part of the block, shown on course pages.
+
+    It is a plain HTML shell: the `block_quick_access/cloud` AMD module binds
+    the buttons, keeps the list in sync with the server and spreads the words
+    over the background of the page. The words are already rendered here so
+    that the block is readable before the module starts and without JavaScript.
+
+    Context variables and values:
+
+    * canmanage - Can the current user add, change and remove words.
+    * title - Heading of the section.
+    * add - Label of the button that adds a word.
+    * addicon - Decorative icon of the "add word" button.
+    * empty - Message shown while the cloud has no words.
+    * hascwords - Whether the cloud already holds words.
+    * save - Label of the button that stores the word.
+    * cancel - Label of the button that closes the editor.
+    * inputlabel - Label of the word input.
+    * placeholder - Placeholder of the word input.
+    * maxwords - Maximum amount of words per course.
+    * maxlength - Maximum length of a single word.
+    * inputid - Id of the word input, unique on the page.
+    * courseid - Id of the course the words belong to.
+    * serviceurl - URL of the AJAX service that loads and stores the words.
+    * words - List of the stored words, see below.
+
+    Example context:
+
+        "canmanage" = true
+        "courseid" = 2
+        "words": [{"id": 3, "word": "Moodle", "posx": 12, "posy": 41}]
+}}
+<div class="block-quick-access-cloud"
+     data-region="block-quick-access-cloud"
+     data-courseid="{{courseid}}"
+     data-canmanage="{{canmanage}}"
+     data-serviceurl="{{serviceurl}}"
+     data-maxwords="{{maxwords}}">
+
+    {{#canmanage}}
+    <hr class="block-quick-access-cloud__rule">
+
+    <div class="block-quick-access-cloud__head d-flex align-items-center justify-content-between">
+        <span class="block-quick-access-cloud__title">{{title}}</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                data-action="qa-cloud-add">
+            {{{addicon}}}
+            <span>{{add}}</span>
+        </button>
+    </div>
+
+    <p class="block-quick-access-cloud__empty small text-muted mb-1"
+       data-region="qa-cloud-empty" {{#hascwords}}hidden{{/hascwords}}>{{empty}}</p>
+
+    <ul class="block-quick-access-cloud__list list-unstyled mb-1"
+        data-region="qa-cloud-list">
+        {{#words}}
+        <li class="block-quick-access-cloud__item d-flex align-items-center"
+            data-wordid="{{id}}"
+            data-word="{{word}}"
+            data-posx="{{posx}}"
+            data-posy="{{posy}}">
+            <span class="block-quick-access-cloud__text">{{word}}</span>
+            <span class="ms-auto d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-link btn-sm p-0"
+                        data-action="qa-cloud-edit" title="{{editlabel}}" aria-label="{{editlabel}}">
+                    {{{editicon}}}
+                </button>
+                <button type="button" class="btn btn-link btn-sm p-0"
+                        data-action="qa-cloud-delete" title="{{deletelabel}}" aria-label="{{deletelabel}}">
+                    {{{deleteicon}}}
+                </button>
+            </span>
+        </li>
+        {{/words}}
+    </ul>
+
+    <div class="block-quick-access-cloud__form" data-region="qa-cloud-form" hidden>
+        <label class="visually-hidden" for="{{inputid}}">{{inputlabel}}</label>
+        <input type="text" class="form-control form-control-sm" id="{{inputid}}"
+               data-region="qa-cloud-input" maxlength="{{maxlength}}"
+               placeholder="{{placeholder}}" autocomplete="off">
+        <div class="invalid-feedback" data-region="qa-cloud-error"></div>
+        <div class="d-flex gap-1 mt-1">
+            <button type="button" class="btn btn-sm btn-primary" data-action="qa-cloud-save">{{save}}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-action="qa-cloud-cancel">{{cancel}}</button>
+        </div>
+    </div>
+    {{/canmanage}}
+</div>

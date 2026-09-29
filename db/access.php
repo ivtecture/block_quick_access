@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for the "Quick access" block.
+ * Capabilities of the "Quick access" block.
  *
  * @package    block_quick_access
  * @copyright  2026 Your Name
@@ -24,8 +24,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'block_quick_access';
-$plugin->version   = 2026092900;  // YYYYMMDDXX.
-$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = 'v0.2.0';
+$capabilities = [
+
+    // Manage the words of the thought cloud inside a course.
+    'block_quick_access/managewords' => [
+        'captype' => 'write',
+        'riskbitmask' => RISK_XSS,
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+];
