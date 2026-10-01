@@ -30,8 +30,17 @@ $capabilities = [
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => [
-            'guest' => CAP_ALLOW,
             'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+    'block/quick_access:viewscores' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,

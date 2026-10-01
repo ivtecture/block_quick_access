@@ -59,6 +59,7 @@ class block_quick_access extends block_base {
         $this->content = new stdClass();
         $this->content->text = '';
         $this->content->footer = '';
+        $this->panelrendered = false;
 
         // Quick links shown to every user.
         $links = [
@@ -100,18 +101,35 @@ class block_quick_access extends block_base {
         $menu = html_writer::tag('ul', implode('', $items), ['class' => $menuclass]);
 
         if ($panel !== '') {
+            $this->panelrendered = true;
             $this->content->text = html_writer::div(
                 html_writer::div($menu, 'bqa-menu')
                 . html_writer::div($panel, 'bqa-leaderboards d-none'),
                 'bqa-block'
             );
-            $this->page->requires->js_call_amd('block_quick_access/main', 'init');
         } else {
             $this->content->text = html_writer::div($menu, 'bqa-menu bqa-block');
         }
 
         return $this->content;
     }
+
+    /**
+     * Load the AMD module that toggles the leaderboard panel.
+     */
+    public function get_required_javascript() {
+        parent::get_required_javascript();
+        if (!empty($this->panelrendered)) {
+            $this->page->requires->js_call_amd('block_quick_access/main', 'init');
+        }
+    }
+
+    /**
+     * Whether the block content was rendered during this request.
+     *
+     * @var bool
+     */
+    protected $panelrendered = false;
 
     /**
      * The block may be added to any page.

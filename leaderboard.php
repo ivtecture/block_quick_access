@@ -30,7 +30,7 @@ require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->dirroot . '/user/lib.php');
 
 /**
- * Resolve the configured number of top users to display.
+ * Resolve the configured number of top users to display (clamped to 1-50).
  *
  * @return int
  */
@@ -39,7 +39,7 @@ function block_quick_access_get_limit() {
     if ($limit <= 0) {
         $limit = 5;
     }
-    return $limit;
+    return min($limit, 50);
 }
 
 /**
@@ -59,35 +59,59 @@ function block_quick_access_get_student_roleids() {
 }
 
 /**
- * Whether a user holds at least one student role in the given context.
- *
- * @param int $userid
- * @param \context $context
- * @return bool
- */
-function block_quick_access_is_student($userid, \context $context) {
-    $studentroleids = block_quick_access_get_student_roleids();
-    foreach (get_user_roles($context, $userid, false) as $role) {
-        if (isset($studentroleids[(int)$role->roleid])) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
  * Enrolled users of the course holding a student role (teachers/managers excluded).
+ *
+ * The student-role check is resolved with a single bulk query covering all role
+ * assignments at the course context and its ancestors (so students enrolled at
+ * a category level are found too), and the result is cached per context id so
+ * consecutive calls within one request reuse it.
  *
  * @param \context $context Course context.
  * @return \stdClass[] Map userid => user record.
  */
 function block_quick_access_get_enrolled_students(\context $context) {
+    global $DB;
+
+    static $cache = [];
+
+    $ctxid = $context->id;
+    if (isset($cache[$ctxid])) {
+        return $cache[$ctxid];
+    }
+
+    $enrolled = get_enrolled_users($context);
+    if (!$enrolled) {
+        $cache[$ctxid] = [];
+        return $cache[$ctxid];
+    }
+
+    $contextids = [$ctxid];
+    $parent = $context->get_parent_context();
+    while ($parent) {
+        $contextids[] = (int)$parent->id;
+        $parent = $parent->get_parent_context();
+    }
+
+    list($inctx, $params) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'ctx');
+    $params['archetype'] = 'student';
+    $sql = "SELECT DISTINCT ra.userid
+              FROM {role_assignments} ra
+              JOIN {role} r ON r.id = ra.roleid
+             WHERE ra.contextid $inctx AND r.archetype = :archetype";
+
+    $studentids = [];
+    foreach ($DB->get_records_sql($sql, $params) as $row) {
+        $studentids[(int)$row->userid] = true;
+    }
+
     $students = [];
-    foreach (get_enrolled_users($context) as $userid => $user) {
-        if (block_quick_access_is_student($userid, $context)) {
+    foreach ($enrolled as $userid => $user) {
+        if (isset($studentids[(int)$userid])) {
             $students[$userid] = $user;
         }
     }
+
+    $cache[$ctxid] = $students;
     return $students;
 }
 
@@ -173,6 +197,9 @@ function block_quick_access_render_leaderboard_panel($courseid) {
         return '';
     }
 
+    // Only users with the "viewscores" capability see other students' names and
+    // numbers; everyone else sees ranks/medals and their own row only.
+    $canscores = has_capability('block/quick_access:viewscores', $context);
     $limit = block_quick_access_get_limit();
 
     $modes = [
@@ -193,12 +220,12 @@ function block_quick_access_render_leaderboard_panel($courseid) {
 
     $heading = html_writer::tag('h6', get_string('leaderboard', 'block_quick_access'));
     $gradepanel = html_writer::div(
-        block_quick_access_render_grade_table($courseid, $limit),
+        block_quick_access_render_grade_table($courseid, $limit, $canscores),
         'bqa-mode-panel my-2',
         ['data-panel' => 'grade']
     );
     $completionpanel = html_writer::div(
-        block_quick_access_render_completion_table($courseid, $limit),
+        block_quick_access_render_completion_table($courseid, $limit, $canscores),
         'bqa-mode-panel my-2 d-none',
         ['data-panel' => 'completion']
     );
@@ -217,14 +244,20 @@ function block_quick_access_render_leaderboard_panel($courseid) {
 /**
  * Render the "by grade" leaderboard table.
  *
+ * When the viewer cannot see other students' scores ($canscores false), every
+ * row except their own shows placeholders instead of name/picture and points;
+ * their own row falls back to the requested limit if not among the top entries.
+ *
  * @param int $courseid Course ID.
  * @param int $limit Maximum number of entries.
+ * @param bool $canscores Whether the viewer may see other students' scores.
  * @return string
  */
-function block_quick_access_render_grade_table($courseid, $limit) {
-    global $OUTPUT;
+function block_quick_access_render_grade_table($courseid, $limit, $canscores = false) {
+    global $OUTPUT, $USER;
 
-    $entries = block_quick_access_get_leaderboard($courseid, $limit);
+    $viewerid = $canscores ? null : (int)$USER->id;
+    $entries = block_quick_access_get_leaderboard($courseid, $limit, $viewerid);
     if (empty($entries)) {
         return html_writer::div(get_string('noentries', 'block_quick_access'), 'text-muted');
     }
@@ -240,12 +273,19 @@ function block_quick_access_render_grade_table($courseid, $limit) {
 
     foreach ($entries as $entry) {
         $user = $entry['user'];
-        $picture = $OUTPUT->user_picture($user, ['courseid' => $courseid, 'size' => 24]);
-        $name = html_writer::link(
-            new moodle_url('/user/view.php', ['id' => $user->id, 'course' => $courseid]),
-            fullname($user)
-        );
-        $points = $entry['grade'] !== null ? format_float($entry['grade'], 2, true) : '-';
+        $own = (int)$entry['userid'] === $viewerid;
+        if ($canscores || $own) {
+            $picture = $OUTPUT->user_picture($user, ['courseid' => $courseid, 'size' => 24]);
+            $name = html_writer::link(
+                new moodle_url('/user/view.php', ['id' => $user->id, 'course' => $courseid]),
+                fullname($user)
+            );
+            $points = $entry['grade'] !== null ? format_float($entry['grade'], 2, true) : '-';
+        } else {
+            $picture = '';
+            $name = '-';
+            $points = '-';
+        }
         $row = new html_table_row();
         $row->attributes['class'] = block_quick_access_rank_class($entry['rank']);
         $row->cells = [
@@ -260,16 +300,18 @@ function block_quick_access_render_grade_table($courseid, $limit) {
 }
 
 /**
- * Render the "by completion" leaderboard table.
+ * Render the "by completion" leaderboard table (see grade-table privacy rules).
  *
  * @param int $courseid Course ID.
  * @param int $limit Maximum number of entries.
+ * @param bool $canscores Whether the viewer may see other students' scores.
  * @return string
  */
-function block_quick_access_render_completion_table($courseid, $limit) {
-    global $OUTPUT;
+function block_quick_access_render_completion_table($courseid, $limit, $canscores = false) {
+    global $OUTPUT, $USER;
 
-    $entries = block_quick_access_get_leaderboard_completion($courseid, $limit);
+    $viewerid = $canscores ? null : (int)$USER->id;
+    $entries = block_quick_access_get_leaderboard_completion($courseid, $limit, $viewerid);
     if (empty($entries)) {
         return html_writer::div(get_string('nocompletiondata', 'block_quick_access'), 'text-muted');
     }
@@ -285,17 +327,23 @@ function block_quick_access_render_completion_table($courseid, $limit) {
 
     foreach ($entries as $entry) {
         $user = $entry['user'];
-        $picture = $OUTPUT->user_picture($user, ['courseid' => $courseid, 'size' => 24]);
-        $name = html_writer::link(
-            new moodle_url('/user/view.php', ['id' => $user->id, 'course' => $courseid]),
-            fullname($user)
-        );
+        $own = (int)$entry['userid'] === $viewerid;
+        if ($canscores || $own) {
+            $picture = $OUTPUT->user_picture($user, ['courseid' => $courseid, 'size' => 24]);
+            $name = html_writer::link(
+                new moodle_url('/user/view.php', ['id' => $user->id, 'course' => $courseid]),
+                fullname($user)
+            );
+        } else {
+            $picture = '';
+            $name = '-';
+        }
         $row = new html_table_row();
         $row->attributes['class'] = block_quick_access_rank_class($entry['rank']);
         $row->cells = [
             block_quick_access_rank_display($entry['rank']),
             $picture . ' ' . $name,
-            round($entry['percent']) . '%',
+            ($canscores || $own) ? round($entry['percent']) . '%' : '-',
         ];
         $table->data[] = $row;
     }
@@ -306,13 +354,17 @@ function block_quick_access_render_completion_table($courseid, $limit) {
 /**
  * Build a course leaderboard ranked by the course-total grade.
  *
- * Students without a course-total grade are appended at the end (rank '-').
+ * Students without a visible course-total grade (unset or hidden) are appended
+ * at the end (rank '-'). Results are cached for a short TTL; cache entries are
+ * only produced when no viewer id is passed, so masked views never leak.
  *
  * @param int $courseid Course ID.
  * @param int $limit Maximum number of entries to return.
+ * @param int|null $viewerid When given, ensure this user's row is included
+ *        (used for the masked view where students see only their own row).
  * @return array[] List of entries, each with keys: rank, grade, user.
  */
-function block_quick_access_get_leaderboard($courseid, $limit = 5) {
+function block_quick_access_get_leaderboard($courseid, $limit = 5, $viewerid = null) {
     $context = context_course::instance($courseid);
 
     $enrolled = block_quick_access_get_enrolled_students($context);
@@ -320,7 +372,17 @@ function block_quick_access_get_leaderboard($courseid, $limit = 5) {
         return [];
     }
 
+    if ($viewerid === null) {
+        $cache = cache::make('block_quick_access', 'result');
+        $key = 'grade_' . $courseid . '_' . $limit;
+        if (($cached = $cache->get($key)) !== false) {
+            return $cached;
+        }
+    }
+
     $grades = grade_get_course_grades($courseid, array_keys($enrolled));
+
+    $hidden = block_quick_access_get_hidden_grade_users($courseid, array_keys($enrolled));
 
     $scored = [];
     $unscored = [];
@@ -328,7 +390,9 @@ function block_quick_access_get_leaderboard($courseid, $limit = 5) {
         if (!isset($enrolled[$userid])) {
             continue;
         }
-        if ($grade->grade === null || $grade->grade === '') {
+        if (isset($hidden[$userid])) {
+            $unscored[] = $userid;
+        } else if ($grade->grade === null || $grade->grade === '') {
             $unscored[] = $userid;
         } else {
             $scored[$userid] = (float)$grade->grade;
@@ -348,6 +412,10 @@ function block_quick_access_get_leaderboard($courseid, $limit = 5) {
         ];
     }
 
+    if ($viewerid !== null) {
+        block_quick_access_append_viewer_entry($result, $scored, $viewerid, 'grade');
+    }
+
     $userids = array_column($result, 'userid');
     $users = $userids ? user_get_users_by_id($userids) : [];
 
@@ -356,25 +424,120 @@ function block_quick_access_get_leaderboard($courseid, $limit = 5) {
     }
     unset($entry);
 
-    return array_values(array_filter($result, function ($entry) {
+    $result = array_values(array_filter($result, function ($entry) {
         return $entry['user'] !== null;
     }));
+
+    if ($viewerid === null) {
+        $cache->set($key, $result);
+    }
+
+    return $result;
+}
+
+/**
+ * User ids whose course-total grade is currently hidden from students.
+ *
+ * A grade is hidden when grade_grades.hidden is set (1 = permanently hidden,
+ * a future timestamp = hidden until then).
+ *
+ * @param int $courseid Course ID.
+ * @param int[] $userids Users to check.
+ * @return array Map userid => true.
+ */
+function block_quick_access_get_hidden_grade_users($courseid, array $userids) {
+    global $DB;
+
+    if (!$userids) {
+        return [];
+    }
+
+    $item = grade_item::fetch_course_item($courseid);
+    if (!$item) {
+        return [];
+    }
+
+    list($insql, $params) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'uid');
+    $params['itemid'] = (int)$item->id;
+    $params['now'] = time();
+    $sql = "SELECT DISTINCT userid
+              FROM {grade_grades}
+             WHERE itemid = :itemid AND userid $insql
+               AND (hidden = 1 OR (hidden > 0 AND hidden > :now))";
+
+    $hidden = [];
+    foreach ($DB->get_records_sql($sql, $params) as $row) {
+        $hidden[(int)$row->userid] = true;
+    }
+    return $hidden;
+}
+
+/**
+ * Append the viewer's own row to a ranked result when they fall outside the
+ * top entries, computing their absolute (tie-aware) rank.
+ *
+ * @param array $result Ranked entries list, passed by reference.
+ * @param float[] $scores All scores (userid => score).
+ * @param int|null $viewerid Viewer user id.
+ * @param string $valuekey Key storing the score in each entry.
+ * @return bool Whether a new row was appended.
+ */
+function block_quick_access_append_viewer_entry(array &$result, array $scores, $viewerid, $valuekey) {
+    if (!$viewerid || !isset($scores[(int)$viewerid])) {
+        return false;
+    }
+    foreach ($result as $entry) {
+        if ((int)$entry['userid'] === (int)$viewerid) {
+            return false;
+        }
+    }
+
+    arsort($scores);
+    $position = 0;
+    $rank = 0;
+    $last = null;
+    foreach ($scores as $userid => $score) {
+        $position++;
+        if ($score !== $last) {
+            $rank = $position;
+            $last = $score;
+        }
+        if ((int)$userid === (int)$viewerid) {
+            break;
+        }
+    }
+
+    $result[] = [
+        'rank' => $rank,
+        'userid' => (int)$viewerid,
+        $valuekey => $scores[(int)$viewerid],
+    ];
+    return true;
 }
 
 /**
  * Build a course leaderboard ranked by the percentage of activities
- * completed/read by each student.
+ * completed/read by each student (see grade getter for viewer/caching rules).
  *
  * @param int $courseid Course ID.
  * @param int $limit Maximum number of entries.
+ * @param int|null $viewerid Ensure this user's row is included (masked view).
  * @return array[] List of entries, each with keys: rank, percent, user.
  */
-function block_quick_access_get_leaderboard_completion($courseid, $limit = 5) {
+function block_quick_access_get_leaderboard_completion($courseid, $limit = 5, $viewerid = null) {
     $context = context_course::instance($courseid);
 
     $enrolled = block_quick_access_get_enrolled_students($context);
     if (empty($enrolled)) {
         return [];
+    }
+
+    if ($viewerid === null) {
+        $cache = cache::make('block_quick_access', 'result');
+        $key = 'completion_' . $courseid . '_' . $limit;
+        if (($cached = $cache->get($key)) !== false) {
+            return $cached;
+        }
     }
 
     $course = get_course($courseid);
@@ -390,12 +553,27 @@ function block_quick_access_get_leaderboard_completion($courseid, $limit = 5) {
         $cms[] = $cm;
     }
 
-    $scores = block_quick_access_course_activity_completion(array_keys($enrolled), $cms);
+    $scores = block_quick_access_course_activity_completion($course, array_keys($enrolled), $cms);
     if ($scores === null) {
         return [];
     }
 
-    return block_quick_access_rank_entries($scores, $limit, 'percent');
+    $result = block_quick_access_rank_entries($scores, $limit, 'percent');
+
+    if ($viewerid !== null) {
+        if (block_quick_access_append_viewer_entry($result, $scores, $viewerid, 'percent')) {
+            $viewer = user_get_users_by_id([$viewerid])[$viewerid] ?? null;
+            if ($viewer) {
+                $result[count($result) - 1]['user'] = $viewer;
+            }
+        }
+    }
+
+    if ($viewerid === null) {
+        $cache->set($key, $result);
+    }
+
+    return $result;
 }
 
 /**
@@ -405,11 +583,12 @@ function block_quick_access_get_leaderboard_completion($courseid, $limit = 5) {
  * on their own, no teacher grading needed: completion tracking met, an
  * assignment submission sent, or the activity viewed (read).
  *
+ * @param \stdClass $course Course record (used for logstore scope/filtering).
  * @param int[] $userids
  * @param \cm_info[] $cms List of course modules to count.
  * @return float[]|null Map userid => percentage, or null when no activities.
  */
-function block_quick_access_course_activity_completion(array $userids, array $cms) {
+function block_quick_access_course_activity_completion(\stdClass $course, array $userids, array $cms) {
     global $DB;
 
     $total = count($cms);
@@ -435,13 +614,15 @@ function block_quick_access_course_activity_completion(array $userids, array $cm
         }
     }
 
-    // Activities with completion tracking: add those the student completed.
+    // Activities with completion tracking: add those the student completed
+    // (a state of COMPLETE or COMPLETE_PASS; the raw state bit is not enough).
     if ($tracked) {
         list($in, $params) = $DB->get_in_or_equal($tracked, SQL_PARAMS_NAMED, 'cm');
         $params['complete'] = COMPLETION_COMPLETE;
+        $params['completepass'] = COMPLETION_COMPLETE_PASS;
         $sql = "SELECT userid, COUNT(*) AS n
                   FROM {course_modules_completion}
-                 WHERE coursemoduleid $in AND (completionstate & :complete) = :complete
+                 WHERE coursemoduleid $in AND completionstate IN (:complete, :completepass)
                  GROUP BY userid";
         foreach ($DB->get_records_sql($sql, $params) as $row) {
             if (isset($completed[$row->userid])) {
@@ -466,13 +647,14 @@ function block_quick_access_course_activity_completion(array $userids, array $cm
         }
     }
 
-    // Quizzes: a finished attempt means the student completed the quiz.
+    // Quizzes: a finished (non-preview) attempt means the student completed the quiz.
     if ($quizzes) {
         list($in, $params) = $DB->get_in_or_equal($quizzes, SQL_PARAMS_NAMED, 'qz');
         $params['finished'] = 'finished';
+        $params['preview'] = 0;
         $sql = "SELECT userid, COUNT(DISTINCT quiz) AS n
                   FROM {quiz_attempts}
-                 WHERE quiz $in AND userid <> 0 AND state = :finished
+                 WHERE quiz $in AND userid <> 0 AND preview = :preview AND state = :finished
                  GROUP BY userid";
         foreach ($DB->get_records_sql($sql, $params) as $row) {
             if (isset($completed[$row->userid])) {
@@ -481,12 +663,21 @@ function block_quick_access_course_activity_completion(array $userids, array $cm
         }
     }
 
-    // Other activities: a course module "viewed" log entry means the student read it.
-    if ($views) {
+    // Other activities: a course module "viewed" log entry means the student
+    // read it. Only counted when logstore_standard is enabled; the query is
+    // scoped to this course and the course start date (or a one-year window).
+    if ($views && get_config('logstore_standard', 'enabled')) {
         list($in, $params) = $DB->get_in_or_equal($views, SQL_PARAMS_NAMED, 'cm');
+        $params['courseid'] = (int)$course->id;
+        $params['from'] = (int)$course->startdate;
+        if ($params['from'] <= 0) {
+            $params['from'] = time() - 365 * DAYSECS;
+        }
         $sql = "SELECT userid, COUNT(DISTINCT objectid) AS n
                   FROM {logstore_standard_log}
-                 WHERE objecttable = 'course_modules' AND objectid $in AND action IN ('viewed', 'view')
+                 WHERE courseid = :courseid AND objecttable = 'course_modules'
+                   AND objectid $in AND action IN ('viewed', 'view')
+                   AND timecreated >= :from
                  GROUP BY userid";
         foreach ($DB->get_records_sql($sql, $params) as $row) {
             if (isset($completed[$row->userid])) {
