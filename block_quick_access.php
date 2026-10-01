@@ -22,7 +22,7 @@
  * configure the site.
  *
  * @package    block_quick_access
- * @copyright  2026 Your Name
+ * @copyright  2026 Spada1557
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
@@ -60,8 +60,14 @@ class block_quick_access extends block_base {
             get_string('mycourses', 'block_quick_access') => new moodle_url('/my/courses.php'),
             get_string('calendar', 'block_quick_access')  => new moodle_url('/calendar/view.php', ['view' => 'month']),
             get_string('sitehome', 'block_quick_access')  => new moodle_url('/'),
-            get_string('analytics', 'block_quick_access') => new moodle_url('/blocks/task_analytics/view.php'),
         ];
+
+        // Analytics link is only meaningful for logged-in non-guest users
+        // (task_analytics block itself hides content from guests).
+        // Do not show it on the dashboard to guests / anonymous visitors.
+        if (isloggedin() && !isguestuser()) {
+            $links[get_string('analytics', 'block_quick_access')] = new moodle_url('/blocks/task_analytics/view.php');
+        }
 
         // The administration link is only rendered for users who can configure the site.
         if (has_capability('moodle/site:config', context_system::instance())) {

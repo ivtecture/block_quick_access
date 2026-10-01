@@ -15,7 +15,11 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version metadata for the "Task analytics" block.
+ * Cache definitions for the "Task analytics" block.
+ *
+ * Caches the full sorted overview per user (key = userid) for 5 minutes,
+ * so the dashboard block does not rebuild ~10 batched queries on every render.
+ * BLOCK_LIMIT only slices the cached list.
  *
  * @package    block_task_analytics
  * @copyright  2026 Spada1557
@@ -24,8 +28,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'block_task_analytics';
-$plugin->version   = 2026091001;  // YYYYMMDDXX.
-$plugin->requires  = 2024100700;  // Moodle 4.5.0 (MOODLE_405_STABLE).
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = 'v0.1.0';
+$definitions = [
+    'overview' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'ttl' => 300,
+    ],
+];

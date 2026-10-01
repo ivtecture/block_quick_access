@@ -18,7 +18,7 @@
  * English strings for the "Quick access" block.
  *
  * @package    block_quick_access
- * @copyright  2026 Your Name
+ * @copyright  2026 Spada1557
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 

@@ -18,7 +18,7 @@
  * Capabilities for the "Task analytics" block.
  *
  * @package    block_task_analytics
- * @copyright  2026 Your Name
+ * @copyright  2026 Spada1557
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 

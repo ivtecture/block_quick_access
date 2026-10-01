@@ -18,7 +18,7 @@
  * English strings for the "Task analytics" block.
  *
  * @package    block_task_analytics
- * @copyright  2026 Your Name
+ * @copyright  2026 Spada1557
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
@@ -29,6 +29,7 @@ $string['taskanalytics'] = 'Task analytics';
 $string['notsubmitted'] = 'Not submitted';
 $string['inreview'] = 'In review';
 $string['graded'] = 'Graded, grade: {$a}';
+$string['gradedteacher'] = 'Graded';
 $string['grade'] = 'Grade: {$a}';
 $string['reviewlink'] = 'View feedback';
 $string['checklink'] = 'Check';
@@ -44,5 +45,10 @@ $string['pending'] = '{$a} to check';
 $string['alltasks'] = 'All tasks';
 $string['privacy:metadata'] = 'The Task analytics block does not store any personal data.';
 $string['noduedate'] = 'No due date';
+$string['filtercourse'] = 'Course';
+$string['filterstatus'] = 'Status';
+$string['allcourses'] = 'All courses';
+$string['allstatuses'] = 'All statuses';
+$string['filterapply'] = 'Apply filter';
 $string['task_analytics:addinstance'] = 'Add a new Task analytics block';
 $string['task_analytics:myaddinstance'] = 'Add a new Task analytics block to Dashboard';

@@ -18,7 +18,7 @@
  * Russian strings for the "Task analytics" block.
  *
  * @package    block_task_analytics
- * @copyright  2026 Your Name
+ * @copyright  2026 Spada1557
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
@@ -29,6 +29,7 @@ $string['taskanalytics'] = 'Аналитика задач';
 $string['notsubmitted'] = 'Не загружено';
 $string['inreview'] = 'На проверке';
 $string['graded'] = 'Оценено, оценка: {$a}';
+$string['gradedteacher'] = 'Оценено';
 $string['grade'] = 'Оценка: {$a}';
 $string['reviewlink'] = 'Смотреть отзыв';
 $string['checklink'] = 'Проверить';
@@ -44,5 +45,10 @@ $string['pending'] = '{$a} на проверку';
 $string['alltasks'] = 'Все задачи';
 $string['privacy:metadata'] = 'Блок «Аналитика задач» не хранит персональных данных.';
 $string['noduedate'] = 'Без срока';
+$string['filtercourse'] = 'Курс';
+$string['filterstatus'] = 'Статус';
+$string['allcourses'] = 'Все курсы';
+$string['allstatuses'] = 'Все статусы';
+$string['filterapply'] = 'Применить фильтр';
 $string['task_analytics:addinstance'] = 'Добавлять блок «Аналитика задач»';
 $string['task_analytics:myaddinstance'] = 'Добавлять блок «Аналитика задач» на дашборд';

@@ -22,7 +22,7 @@
  * see aggregates waiting for grading. The full list lives in view.php.
  *
  * @package    block_task_analytics
- * @copyright  2026 Your Name
+ * @copyright  2026 Spada1557
  * @license    https://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3 or later
  */
 
@@ -70,7 +70,11 @@ class block_task_analytics extends block_base {
 
         $lis = [];
         foreach ($items as $item) {
-            $lis[] = html_writer::tag('li', $this->render_item_compact($item), ['class' => 'task-analytics-item']);
+            $lis[] = html_writer::tag(
+                'li',
+                \block_task_analytics\renderer::render_item_compact($item),
+                ['class' => 'task-analytics-item']
+            );
         }
         $this->content->text = html_writer::tag('ul', implode('', $lis), ['class' => 'list task-analytics-list']);
 
@@ -87,42 +91,14 @@ class block_task_analytics extends block_base {
     /**
      * Render one compact list row: course, task link, status badge, action link.
      *
+     * Kept for backward compatibility; delegates to the shared renderer
+     * used by both the block and view.php.
+     *
      * @param array $item overview item from service::get_overview().
      * @return string HTML fragment.
      */
     protected function render_item_compact(array $item): string {
-        $tasklink = html_writer::link($item['url'], format_string($item['name']), ['class' => 'task-analytics-name']);
-        $course = html_writer::div(
-            format_string($item['courseshortname']),
-            'task-analytics-course text-muted small'
-        );
-
-        if ($item['status'] === \block_task_analytics\service::STATUS_GRADED && !$item['isteacher']) {
-            $statustext = get_string('graded', 'block_task_analytics', $item['gradedisplay']);
-        } else if ($item['status'] === \block_task_analytics\service::STATUS_INREVIEW && $item['isteacher']) {
-            $statustext = get_string('inreview', 'block_task_analytics')
-                . ' (' . get_string('pending', 'block_task_analytics', $item['pending']) . ')';
-        } else {
-            $statustext = get_string($item['status'], 'block_task_analytics');
-        }
-        $badge = html_writer::span($statustext, 'task-status task-status-' . $item['status']);
-
-        $action = '';
-        if (!empty($item['actionurl']) && !empty($item['actionlabel'])) {
-            // For graded student items the action points at the feedback/review page.
-            // For plain "open task" rows the action duplicates the title link, so skip it.
-            $isduplicate = ($item['actionlabel'] === 'viewlink' && (string)$item['actionurl'] === (string)$item['url']);
-            if (!$isduplicate) {
-                $action = html_writer::link(
-                    $item['actionurl'],
-                    get_string($item['actionlabel'], 'block_task_analytics'),
-                    ['class' => 'task-analytics-action small']
-                );
-            }
-        }
-
-        $meta = $badge . ($action !== '' ? ' ' . $action : '');
-        return $course . $tasklink . html_writer::div($meta, 'task-analytics-meta');
+        return \block_task_analytics\renderer::render_item_compact($item);
     }
 
     /**
